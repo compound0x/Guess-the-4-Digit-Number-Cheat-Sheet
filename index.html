@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Number Guessing Game</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 20px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    button { 
+      margin: 5px; 
+      padding: 12px 24px; 
+      font-size: 16px; 
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px 0 rgba(31, 38, 135, 0.4);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    #lowerBtn { background: #ff6b6b; color: white; }
+    #correctBtn { background: #51cf66; color: white; }
+    #higherBtn { background: #339af0; color: white; }
+    
+    .game-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    #guess { 
+      font-size: 32px; 
+      margin: 20px 0; 
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    #message { 
+      margin-top: 20px; 
+      font-weight: bold; 
+      font-size: 18px;
+      text-align: center;
+    }
+    .attempts-counter {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    .history-section {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .history-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #fff;
+    }
+    .history-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+    .history-item.too-high {
+      border-left-color: #ff6b6b;
+    }
+    .history-item.too-low {
+      border-left-color: #339af0;
+    }
+    .history-item.correct {
+      border-left-color: #51cf66;
+      background: rgba(81, 207, 102, 0.2);
+    }
+    .guess-number {
+      font-weight: bold;
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+    .guess-result {
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .result-high { background: rgba(255, 107, 107, 0.3); }
+    .result-low { background: rgba(51, 154, 240, 0.3); }
+    .result-correct { background: rgba(81, 207, 102, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Guess the 4-Digit Number Cheat Sheet</h2>
+    <div style="text-align: center; font-size: 12px; opacity: 0.7; margin-bottom: 20px; font-style: italic;">
+      vibe coded by <a href="https://x.com/compound0x" target="_blank">compound0x</a>
+    </div>
+    
+    <div class="attempts-counter">
+      <span id="attemptsDisplay">Attempts: 0 / 15</span>
+    </div>
+    
+    <div class="game-section">
+      <div id="guess">Guess: </div>
+
+      <button id="lowerBtn">📉 Too High</button>
+      <button id="correctBtn">🎯 Correct</button>
+      <button id="higherBtn">📈 Too Low</button>
+    </div>
+
+    <div id="message"></div>
+
+    <div class="history-section">
+      <div class="history-title">📋 Guess History</div>
+      <div class="history-list" id="historyList">
+        <div style="text-align: center; opacity: 0.7; font-style: italic;">No guesses yet...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let low = 0;
+    let high = 9999;
+    let attempts = 0;
+    const maxAttempts = 15;
+    let guessHistory = [];
+
+    const guessDiv = document.getElementById('guess');
+    const messageDiv = document.getElementById('message');
+    const lowerBtn = document.getElementById('lowerBtn');
+    const higherBtn = document.getElementById('higherBtn');
+    const correctBtn = document.getElementById('correctBtn');
+    const attemptsDisplay = document.getElementById('attemptsDisplay');
+    const historyList = document.getElementById('historyList');
+
+    function makeGuess() {
+      return Math.floor((low + high) / 2);
+    }
+
+    function updateAttemptsDisplay() {
+      attemptsDisplay.textContent = `Attempts: ${attempts} / ${maxAttempts}`;
+    }
+
+    function checkIfOnlyOnePossibility() {
+      return low === high;
+    }
+
+    function addToHistory(guess, result) {
+      guessHistory.push({ guess, result, attempt: attempts });
+      updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+      if (guessHistory.length === 0) return;
+      
+      // Clear the "No guesses yet..." message
+      if (guessHistory.length === 1) {
+        historyList.innerHTML = '';
+      }
+      
+      const historyItem = document.createElement('div');
+      const latestGuess = guessHistory[guessHistory.length - 1];
+      
+      historyItem.className = `history-item ${latestGuess.result.toLowerCase().replace(' ', '-')}`;
+      
+      let resultClass = '';
+      let resultText = latestGuess.result;
+      
+      switch(latestGuess.result) {
+        case 'Too High':
+          resultClass = 'result-high';
+          break;
+        case 'Too Low':
+          resultClass = 'result-low';
+          break;
+        case 'Correct':
+          resultClass = 'result-correct';
+          resultText = '🎉 Correct!';
+          break;
+      }
+      
+      historyItem.innerHTML = `
+        <div>
+          <span style="opacity: 0.8; font-size: 14px;">#${latestGuess.attempt}</span>
+          <span class="guess-number">${latestGuess.guess.toString().padStart(4, '0')}</span>
+        </div>
+        <span class="guess-result ${resultClass}">${resultText}</span>
+      `;
+      
+      // Add to top of history
+      historyList.insertBefore(historyItem, historyList.firstChild);
+    }
+
+    let currentGuess = makeGuess();
+    guessDiv.textContent = `Guess: ${currentGuess.toString().padStart(4, '0')}`;
+
+    function endGame(won) {
+      lowerBtn.disabled = true;
+      higherBtn.disabled = true;
+      correctBtn.disabled = true;
+      if (won) {
+        messageDiv.textContent = `🎉 Congratulations! You found the number ${currentGuess.toString().padStart(4, '0')} in ${attempts} attempts!`;
+        messageDiv.style.color = '#51cf66';
+      } else {
+        messageDiv.textContent = '😔 Maximum attempts reached. Game over!';
+        messageDiv.style.color = '#ff6b6b';
+      }
+    }
+
+    lowerBtn.addEventListener('click', () => {
+      attempts++;
+      addToHistory(currentGuess, 'Too High');
+      updateAttemptsDisplay();
+      
+      high = currentGuess - 1;
+      if (high < low) {
+        messageDiv.textContent = '⚠️ No possible numbers left. Check your inputs!';
+        messageDiv.style.color = '#ffa94d';
+        endGame(false);
+        return;
+      }
+      
+      currentGuess = makeGuess();
+      guessDiv.textContent = `Guess: ${currentGuess.toString().padStart(4, '0')}`;
+      
+      // Check if we've narrowed it down to only one possibility
+      if (checkIfOnlyOnePossibility()) {
+        addToHistory(currentGuess, 'Correct');
+        attempts++;
+        updateAttemptsDisplay();
+        messageDiv.textContent = `🎯 Found it! The number must be ${currentGuess.toString().padStart(4, '0')} - it's the only possibility left!`;
+        messageDiv.style.color = '#51cf66';
+        endGame(true);
+        return;
+      }
+      
+      if (attempts >= maxAttempts) {
+        endGame(false);
+        return;
+      }
+    });
+
+    higherBtn.addEventListener('click', () => {
+      attempts++;
+      addToHistory(currentGuess, 'Too Low');
+      updateAttemptsDisplay();
+      
+      low = currentGuess + 1;
+      if (low > high) {
+        messageDiv.textContent = '⚠️ No possible numbers left. Check your inputs!';
+        messageDiv.style.color = '#ffa94d';
+        endGame(false);
+        return;
+      }
+      
+      currentGuess = makeGuess();
+      guessDiv.textContent = `Guess: ${currentGuess.toString().padStart(4, '0')}`;
+      
+      // Check if we've narrowed it down to only one possibility
+      if (checkIfOnlyOnePossibility()) {
+        addToHistory(currentGuess, 'Correct');
+        attempts++;
+        updateAttemptsDisplay();
+        messageDiv.textContent = `🎯 Found it! The number must be ${currentGuess.toString().padStart(4, '0')} - it's the only possibility left!`;
+        messageDiv.style.color = '#51cf66';
+        endGame(true);
+        return;
+      }
+      
+      if (attempts >= maxAttempts) {
+        endGame(false);
+        return;
+      }
+    });
+
+    correctBtn.addEventListener('click', () => {
+      attempts++;
+      addToHistory(currentGuess, 'Correct');
+      updateAttemptsDisplay();
+      endGame(true);
+    });
+
+  </script>
+</body>
+</html>
